@@ -66,8 +66,21 @@ on p.id = enc.patient_id and enc.num >=5
 limit 10;
  
 ----
+select resource#>>'{name, 0, given, 0}' as patient_name, resource#>>'{name, 0, family}' as patient_family, date_part('year', current_date) - date_part('year',to_date(resource#>>'{birthDate}','YYYY-MM-DD')) as age
+from patient
+order by age asc
+limit 5;
+----
+select count (*) as num, date_part('year', current_date) - date_part('year',to_date(resource#>>'{birthDate}','YYYY-MM-DD')) as age
+from patient
+where  date_part('year', current_date) - date_part('year',to_date(resource#>>'{birthDate}','YYYY-MM-DD')) > 0 and date_part('year', current_date) - date_part('year',to_date(resource#>>'{birthDate}','YYYY-MM-DD')) < 10
+group by date_part('year', current_date) - date_part('year',to_date(resource#>>'{birthDate}','YYYY-MM-DD'));
+----
 --select resource#>> '{name, 0, given, 0}' firstname, resource#>>'{name,0, family}' secondname
 --from patient
 --where resource#>> '{address, 0, city}'='Tewksbury';
 --
+----
+select 
+----
 
