@@ -32,13 +32,13 @@ select p.resource#>>'{name, 0, given, 0}' as first_name, p.resource#>>'{name,0,f
 from patient as p
 join
 (
-      SELECT count (resource#>>'{subject, id}') as num, (resource#>>'{subject, id}') user_id
+      SELECT count (resource#>>'{subject, id}') as num, (resource#>>'{subject, id}') as user_id
              FROM encounter
              group by resource#>>'{subject, id}'
-              order by count(resource#>>'{subject, id}') DESC
-             limit 10
              )as enc
-on p.id = enc.user_id;
+on p.id = enc.user_id
+order by enc.num desc
+limit 10;
 ----
 
 -- The most often diseases
@@ -56,31 +56,54 @@ select p.resource#>> '{name, 0, given, 0}' as first_name, p.resource#>>'{name, 0
 from patient p
 join
 (
-select c.resource#>>'{code, text}' as ill_name, count (*) as num, c.resource#>>'{subject, id}' as patient_id
-from condition c
-group by ill_name, patient_id
-order by num desc
+    select c.resource#>>'{code, text}' as ill_name, count (*) as num, c.resource#>>'{subject, id}' as patient_id
+    from condition c
+    group by ill_name, patient_id
+    order by num desc
 
 )as enc
 on p.id = enc.patient_id and enc.num >=5
 limit 10;
  
 ----
+
+--The youngest patients
+
 select resource#>>'{name, 0, given, 0}' as patient_name, resource#>>'{name, 0, family}' as patient_family, date_part('year', current_date) - date_part('year',to_date(resource#>>'{birthDate}','YYYY-MM-DD')) as age
 from patient
 order by age asc
 limit 5;
 ----
+
+-- The number of patients of a certain age
+
 select count (*) as num, date_part('year', current_date) - date_part('year',to_date(resource#>>'{birthDate}','YYYY-MM-DD')) as age
 from patient
 where  date_part('year', current_date) - date_part('year',to_date(resource#>>'{birthDate}','YYYY-MM-DD')) > 0 and date_part('year', current_date) - date_part('year',to_date(resource#>>'{birthDate}','YYYY-MM-DD')) < 10
-group by date_part('year', current_date) - date_part('year',to_date(resource#>>'{birthDate}','YYYY-MM-DD'));
+group by age;
+--date_part('year', current_date) - date_part('year',to_date(resource#>>'{birthDate}','YYYY-MM-DD'));
 ----
 --select resource#>> '{name, 0, given, 0}' firstname, resource#>>'{name,0, family}' secondname
 --from patient
 --where resource#>> '{address, 0, city}'='Tewksbury';
 --
 ----
-select 
+
+--The top three diseases of patients who was born between 1961 and 2000
+
+select c.resource#>>'{code, text}' as disease_name, count(distinct(c.resource#>>'{subject, id}')) as numbers
+from condition c
+join
+(
+    select p.id as patient_id
+    from patient p
+    where to_date(resource#>>'{birthDate}', 'YYYY-MM-DD') > to_date('1961-05-12', 'YYYY-MM-DD') and to_date(resource#>>'{birthDate}','YYYY-MM-DD') < to_date('2000-07-23', 'YYYY-MM-DD')
+) as ant 
+on  c.resource#>> '{subject, id}' = ant.patient_id
+group by disease_name
+order by numbers desc
+limit 3;
+----
+
 ----
 
