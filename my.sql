@@ -1,4 +1,4 @@
----- db: -h localhost -p 5432 -U postgres  fhirbase
+---- db: -h localhost -p 5433 -U postgres testbase
 
 --insert into phones_number values ('Kreez', 'Saint-Petersburg', '89999101234', '9999');
 ----
@@ -104,6 +104,11 @@ group by disease_name
 order by numbers desc
 limit 3;
 ----
-
+-- crud operations in testbase
 ----
-
+create table mans (resource jsonb);
+----
+insert into mans(resource) values (jsonb_build_object('gender', 'male', 'birthdate', '1987-06-21', 'address', '[{"city":"SPB"}, {"country": "Russia"}, {"street": "Pobeda street"}]'::jsonb));
+----
+select jsonb_pretty(resource) from mans;
+----
